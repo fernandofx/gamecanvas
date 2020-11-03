@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossing Game</title>
+</head>
+<style>
+    #myCanvas{
+        background-color: red;
+        border: 2px solid black;
+    }
+</style>
+<body>
+<canvas id= "myCanvas" width="1000" height="500"></canvas>
+
+<script>
+
+    //*********** Main Variables **********************
+    var canvas = document.getElementById('myCanvas');    
+    var ctx = canvas.getContext('2d');
+    let screenWidth = 1000;
+    let screenHeight = 500;
+
+    //Entities
+    var player = new Image();
+    var background = new Image();
+    var enemy = new Image();
+    var goal = new Image();
+
+    //Obtain values for entities
+    player.src = 'images/hero.png';
+    background.src = 'images/floor.png';
+    enemy.src = 'images/enemy.png';
+    goal.src = 'images/chest.png';
+
+    //************ Objects definition ******************
+    class GameCharacter {
+
+        constructor(x, y, speed, image, xLimit, yLimit){
+            this.x = x;
+            this.y = y;
+            this.image = image;
+            this.speed = speed;
+            this.yLimit = yLimit;
+            this.xLimit = xLimit;
+        }
+
+        moveVertical(){
+            if(this.y +50 > this.yLimit || this.y < 0 ){
+                this.speed *= -1;
+            }
+            this.y += this.speed            
+        }
+
+        moveHorizontal(){                         
+            this.x += this.speed
+            if(this.x > this.xLimit ){
+                this.x = this.xLimit - this.width;
+            }
+            if(this.x < 0) {
+                this.x = 0;
+            }        
+        }      
+    }
+
+    //*************** Functions Definition **********************
+    //1-Create a element
+    var createElement = (element)=>{        
+        ctx.drawImage(element.image, element.x, element.y)
+    }
+    //2-Move an element vertically
+    function updateVertical(arrayElement){
+        arrayElement.forEach(element => element.moveVertical())
+    }
+    //3-Move an element horizontally
+    function updateHorizontal(arrayElement){
+        arrayElement.forEach(element => element.moveHorizontal())
+    }
+
+    //4 Check collision
+    var collision = (player, enemies, goals) => {
+        
+        enemies.forEach(element => {
+            if((Math.abs(element.x - player[0].x) < 40 ) && (Math.abs(element.y - player[0].y) < 40 )){
+                alert("There were a collision")
+                player[0].x = 50; player[0].y = 225; player[0].speed = 0;
+            }
+        });       
+        
+        goals.forEach(element => {
+            if((Math.abs(element.x - player[0].x) < 40 ) && (Math.abs(element.y - player[0].y) < 40 )){
+                alert("You are WINNER")
+                player[0].x = 50; player[0].y = 225; player[0].speed = 0;
+            }
+        })
+
+    }
+
+    
+
+
+
+    //5-Draw Elements
+    var draw = function(ctx, updateHorizontal, updateVertical, players, enemies, goals, createElement, screenWidth,screenHeight, collision) {
+        //cleannig the frame
+        ctx.clearRect(0,0, screenWidth, screenHeight);
+        ctx.drawImage(background, 0,0)
+        //make the movements
+        updateHorizontal(players);
+        updateVertical(enemies); 
+        collision(players, enemies, goals)         
+        //drawing the elements
+        players.forEach(element => createElement(element))  
+        enemies.forEach(element => createElement(element))        
+        goals.forEach(element => createElement(element))        
+    }
+    //Create instans enemies
+    var enemies = [
+        new GameCharacter(200, 50, 2, enemy, screenWidth, screenHeight),
+        new GameCharacter(450,  300, 3, enemy, screenWidth, screenHeight),
+        new GameCharacter(700, 50, 5, enemy, screenWidth, screenHeight)
+    ];
+    //Create instans players
+    var players = [ new GameCharacter(50, 225, 0, player, screenWidth, screenHeight) ];
+
+    var goals = [ new GameCharacter(950, 225, 0, goal, screenWidth, screenHeight) ];
+
+
+    //Function de loop
+    var step =function(){
+        draw(ctx, updateHorizontal, updateVertical, players, enemies, goals, createElement, screenWidth, screenHeight, collision)
+        console.log(players[0].x)
+        window.requestAnimationFrame(step);
+    }
+    console.log(players[0].xLimit)
+    step()
+
+//*****************EventListeners *************************
+
+    document.addEventListener('keydown', (event)=>{
+        if(event.keyCode === 39) players.forEach(element => element.speed = 4)
+        if(event.keyCode === 37) players.forEach(element => element.speed = -4)
+        
+    })
+    document.addEventListener('keyup', (event)=>{
+        if(event.keyCode === 39 || event.keyCode === 37 ) players.forEach(element => element.speed = 0)
+    })
+
+
+</script>
+
+</body>
+</html>
